@@ -1,18 +1,18 @@
 <?php
 
 /**
- * Full Backup Extension for Contao Open Source CMS
+ * Backup Extension for Contao Open Source CMS
  *
- * @package FullBackup
+ * @package ContaoBackup
  * @link    http://www.infinitysoft.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-if (isset($_SESSION['FULLBACKUP_RUN'])) {
+if (isset($_SESSION['CONTAO_BACKUP_RUN'])) {
 	/**
 	 * Extreme primitive implementation of a unmodifiable array class.
 	 *
-	 * @package FullBackup
+	 * @package ContaoBackup
 	 * @author  Tristan Lins <tristan.lins@infinitysoft.de>
 	 */
 	class UnmodifiableArray implements IteratorAggregate, ArrayAccess, Countable
@@ -49,8 +49,8 @@ if (isset($_SESSION['FULLBACKUP_RUN'])) {
 		}
 	}
 
-	$GLOBALS['TL_MAINTENANCE'] = new UnmodifiableArray(array('FullBackup'));
+	$GLOBALS['TL_MAINTENANCE'] = new UnmodifiableArray(array('ContaoBackup'));
 }
 else {
-	$GLOBALS['TL_MAINTENANCE'][] = 'FullBackup';
+	$GLOBALS['TL_MAINTENANCE'][] = 'ContaoBackup';
 }

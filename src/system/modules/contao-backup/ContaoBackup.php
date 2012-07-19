@@ -30,8 +30,8 @@ class ContaoBackup extends Backend implements executable
 		}
 
 		if (preg_match('#^contao-backup-\d+\.zip$#', $this->Input->get('contao_backup_fetch'))) {
-			$strFile ='system/backups/' . $this->Input->get('contao_backup_fetch');
-			if (file_exists( TL_ROOT . '/' . $strFile)) {
+			$strFile = 'system/backups/' . $this->Input->get('contao_backup_fetch');
+			if (file_exists(TL_ROOT . '/' . $strFile)) {
 				// Hack to allow sendFileToBrowser send the file from system/backups !
 				$GLOBALS['TL_CONFIG']['uploadPath'] = 'system/backups';
 
@@ -59,14 +59,16 @@ class ContaoBackup extends Backend implements executable
 					$_SESSION['CONTAO_BACKUP_RUN']['directories'] = array();
 					$_SESSION['CONTAO_BACKUP_RUN']['files']       = array();
 
-					$iterator = new CallbackFilterIterator(
-						new RecursiveIteratorIterator(
-							new RecursiveDirectoryIterator(TL_ROOT,
-								FilesystemIterator::CURRENT_AS_FILEINFO)),
-						array($this, 'isValidFile'));
+					$iterator = new RecursiveIteratorIterator(
+						new RecursiveDirectoryIterator(TL_ROOT,
+							FilesystemIterator::CURRENT_AS_FILEINFO));
 
 					/** @var SplFileInfo $file */
 					foreach ($iterator as $file) {
+						if (!$this->isValidFile($file)) {
+							continue;
+						}
+
 						$strName = substr($file->getRealPath(), strlen(TL_ROOT) + 1);
 
 						if (!$strName) {
@@ -156,7 +158,7 @@ class ContaoBackup extends Backend implements executable
 
 		// Confirmation message
 		if ($_SESSION['CONTAO_BACKUP_CONFIRM'] != '') {
-			$objTemplate->cacheMessage      = sprintf('<p class="tl_confirm">%s</p>' . "\n", $_SESSION['CONTAO_BACKUP_CONFIRM']);
+			$objTemplate->cacheMessage         = sprintf('<p class="tl_confirm">%s</p>' . "\n", $_SESSION['CONTAO_BACKUP_CONFIRM']);
 			$_SESSION['CONTAO_BACKUP_CONFIRM'] = '';
 		}
 

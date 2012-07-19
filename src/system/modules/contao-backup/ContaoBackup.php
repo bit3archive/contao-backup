@@ -100,17 +100,58 @@ class ContaoBackup extends Backend implements executable
 
 					// create the zip file
 					$objZipArchive = new ZipArchive();
-					$objZipArchive->open(TL_ROOT . '/' . $_SESSION['CONTAO_BACKUP_RUN']['zip'], ZipArchive::CREATE);
+					$blnZipOpened  = $objZipArchive->open(TL_ROOT . '/' . $_SESSION['CONTAO_BACKUP_RUN']['zip'], ZipArchive::CREATE);
+
+					if ($blnZipOpened !== true) {
+						// unset the session variable
+						unset($_SESSION['CONTAO_BACKUP_RUN']);
+
+						switch ($blnZipOpened) {
+							case ZipArchive::ER_EXISTS:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_EXISTS';
+								break;
+							case ZipArchive::ER_INCONS:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_INCONS';
+								break;
+							case ZipArchive::ER_INVAL:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_INVAL';
+								break;
+							case ZipArchive::ER_MEMORY:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_MEMORY';
+								break;
+							case ZipArchive::ER_NOENT:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_NOENT';
+								break;
+							case ZipArchive::ER_NOZIP:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_NOZIP';
+								break;
+							case ZipArchive::ER_OPEN:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_OPEN';
+								break;
+							case ZipArchive::ER_READ:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_READ';
+								break;
+							case ZipArchive::ER_SEEK:
+								$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'ZipArchive error: ZipArchive::ER_SEEK';
+								break;
+						}
+
+						break;
+					}
 
 					// create directories in the zip
 					$objZipArchive->addEmptyDir($strPrefix);
 					foreach ($_SESSION['CONTAO_BACKUP_RUN']['directories'] as $file) {
-						$objZipArchive->addEmptyDir($strPrefix . $file);
+						if ($objZipArchive->addEmptyDir($strPrefix . $file)) {
+							$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'Could not create zip directory ' . $file;
+						}
 					}
 
 					// append all files to the zip
 					foreach ($_SESSION['CONTAO_BACKUP_RUN']['files'] as $file) {
-						$objZipArchive->addFile(TL_ROOT . '/' . $file, $strPrefix . $file);
+						if (!$objZipArchive->addFile(TL_ROOT . '/' . $file, $strPrefix . $file)) {
+							$_SESSION['CONTAO_BACKUP_ERRORS'][] = 'Could not add file ' . $file;
+						}
 					}
 
 					// finalize the zip file
@@ -160,6 +201,14 @@ class ContaoBackup extends Backend implements executable
 		if ($_SESSION['CONTAO_BACKUP_CONFIRM'] != '') {
 			$objTemplate->cacheMessage         = sprintf('<p class="tl_confirm">%s</p>' . "\n", $_SESSION['CONTAO_BACKUP_CONFIRM']);
 			$_SESSION['CONTAO_BACKUP_CONFIRM'] = '';
+		}
+
+		// error messages
+		if (isset($_SESSION['CONTAO_BACKUP_ERRORS']) && is_array($_SESSION['CONTAO_BACKUP_ERRORS'])) {
+			foreach ($_SESSION['CONTAO_BACKUP_ERRORS'] as $error) {
+				$objTemplate->cacheMessage = sprintf('<p class="tl_error">%s</p>' . "\n", $error);
+			}
+			unset($_SESSION['CONTAO_BACKUP_ERRORS']);
 		}
 
 		return $objTemplate->parse();

@@ -183,6 +183,14 @@ class ContaoBackup extends Backend implements executable
 			$this->reload();
 		}
 
+		if (!is_writable(TL_ROOT . '/system/backups')) {
+			Files::getInstance()->chmod('system/backups', 0777);
+
+			if (!is_writable(TL_ROOT . '/system/backups')) {
+				die('Could not make system/backups writeable!');
+			}
+		}
+
 		$arrBackups = array();
 		$iterator   = new RegexIterator(
 			new DirectoryIterator(TL_ROOT . '/system/backups'),

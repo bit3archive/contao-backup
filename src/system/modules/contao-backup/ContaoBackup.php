@@ -229,7 +229,8 @@ class ContaoBackup extends Backend implements executable
 
 	public function isValidFile(SplFileInfo $file)
 	{
-		if (preg_match('#/system/(backups|html|images|scripts|tmp)/#S', $file->getRealPath())) {
+		if (preg_match('#/(system/(backups|html|images|scripts|tmp))/#S', $file->getRealPath(), $match)) {
+			$_SESSION['CONTAO_BACKUP_RUN']['directories'][] = $match[1];
 			return false;
 		}
 
